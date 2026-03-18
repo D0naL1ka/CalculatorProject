@@ -90,3 +90,30 @@ jobs:
             } else {
               console.log("OK: Знайдено схвалене рев'ю. Пайплайн продовжується.");
             }
+
+      - name: Count lines of code with Cloc
+        run: |
+          sudo apt-get install -y cloc -q
+          cloc src/main/java --out=cloc-report.txt
+          echo '=== Cloc Report ===' && cat cloc-report.txt
+
+      - name: Upload Cloc report
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloc-report
+          path: cloc-report.txt
+
+      - name: Run SonarQube analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          wget -q https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+          unzip -q sonar-scanner-cli-5.0.1.3006-linux.zip
+          export PATH=$PATH:$(pwd)/sonar-scanner-5.0.1.3006-linux/bin
+          sonar-scanner \
+            -Dsonar.projectKey=CalculatorProject \
+            -Dsonar.sources=src/main/java \
+            -Dsonar.tests=src/test/java \
+            -Dsonar.java.binaries=target/classes \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            -Dsonar.login=$SONAR_TOKEN
