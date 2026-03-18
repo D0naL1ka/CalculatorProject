@@ -63,3 +63,30 @@ jobs:
 
       - name: Rebuild for analysis
         run: mvn clean test -B -q
+
+      - name: Code Review Check for develop
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            console.log(`Перевірка PR #${prNumber}...`);
+
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              pull_number: prNumber
+            });
+
+            console.log(`Знайдено рев'ю: ${reviews.length}`);
+            reviews.forEach(r => {
+              console.log(`  - ${r.user.login}: ${r.state} (${r.submitted_at})`);
+            });
+
+            const approved = reviews.some(r => r.state === 'APPROVED');
+
+            if (!approved) {
+              core.setFailed("Помилка: Код-рев'ю не схвалено. Потрібне щонайменше одне рев'ю зі статусом APPROVED.");
+            } else {
+              console.log("OK: Знайдено схвалене рев'ю. Пайплайн продовжується.");
+            }
