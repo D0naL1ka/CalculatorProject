@@ -161,3 +161,15 @@ jobs:
         run: |
           mvn checkstyle:checkstyle -q || true
           cat target/checkstyle-result.xml | reviewdog -f=checkstyle -reporter=github-pr-review -level=warning -filter-mode=added
+      
+      - name: Check changes in develop branch
+        run: |
+          git fetch origin develop
+          git log --oneline --graph origin/develop -10 > develop_changes.txt
+          echo '=== Recent commits in develop ===' && cat develop_changes.txt
+
+      - name: Upload develop changes log
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: develop-changes
+          path: develop_changes.txt
