@@ -140,12 +140,12 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -Dsonar.host.url=http://localhost:9000 \
             -Dsonar.login=$SONAR_TOKEN
-            - name: Run Checkstyle and generate report
-        
+
+      - name: Run Checkstyle and generate report
         run: mvn checkstyle:check -q || true
 
       - name: Upload Checkstyle report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: checkstyle-report
           path: target/checkstyle-result.xml
@@ -160,8 +160,4 @@ jobs:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mvn checkstyle:checkstyle -q || true
-          cat target/checkstyle-result.xml \
-            | reviewdog -f=checkstyle \
-                        -reporter=github-pr-review \
-                        -level=warning \
-                        -filter-mode=added
+          cat target/checkstyle-result.xml | reviewdog -f=checkstyle -reporter=github-pr-review -level=warning -filter-mode=added
